@@ -35,6 +35,7 @@
   <button onclick="addScene()">Add/Update Scene</button>
   <button onclick="downloadStory()">Download Story JSON</button>
   <input type="file" onchange="loadStory(this)">
+  <button onclick="validateStory()">Validate Scene Links</button>
 
   <pre id="status"></pre>
 
@@ -104,7 +105,27 @@
       };
       reader.readAsText(file);
     }
+
+    function validateStory() {
+      let errors = [];
+      const keys = Object.keys(story);
+
+      for (const [key, scene] of Object.entries(story)) {
+        if (!scene.choices) continue;
+
+        scene.choices.forEach(choice => {
+          if (!keys.includes(choice.next)) {
+            errors.push(`Scene '${key}' has a choice pointing to missing scene '${choice.next}'`);
+          }
+        });
+      }
+
+      if (errors.length > 0) {
+        document.getElementById('status').textContent = "Validation Errors:\n" + errors.join("\n");
+      } else {
+        document.getElementById('status').textContent = "All scenes are valid!";
+      }
+    }
   </script>
 </body>
 </html>
-
