@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TextQuest Story Builder</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; max-width: 700px; margin: auto; }
+    label { display: block; margin-top: 1em; }
+    textarea, input[type="text"] { width: 100%; }
+    button { margin-top: 1em; padding: 0.5em 1em; }
+    .choice-group { margin-left: 1em; }
+  </style>
+</head>
+<body>
+  <h1>TextQuest Story Builder</h1>
+  <label>Scene Key:
+    <input type="text" id="scene-key">
+  </label>
+  <label>Scene Text:
+    <textarea id="scene-text" rows="4"></textarea>
+  </label>
+  <div id="choices"></div>
+  <button onclick="addChoice()">Add Choice</button>
+
+  <label>
+    <input type="checkbox" id="add-meta" onchange="toggleMeta()"> Add Metadata
+  </label>
+  <div id="meta-block" style="display: none;">
+    <label>
+      <input type="checkbox" id="rewindable" checked> Rewindable
+    </label>
+  </div>
+
+  <button onclick="addScene()">Add/Update Scene</button>
+  <button onclick="downloadStory()">Download Story JSON</button>
+  <input type="file" onchange="loadStory(this)">
+
+  <pre id="status"></pre>
+
+  <script>
+    let story = {};
+
+    function addChoice() {
+      const div = document.createElement('div');
+      div.className = 'choice-group';
+      div.innerHTML = `
+        <label>Choice Text: <input type="text" class="choice-text"></label>
+        <label>Next Scene Key: <input type="text" class="next-scene"></label>
+        <hr>
+      `;
+      document.getElementById('choices').appendChild(div);
+    }
+
+    function toggleMeta() {
+      document.getElementById('meta-block').style.display =
+        document.getElementById('add-meta').checked ? 'block' : 'none';
+    }
+
+    function addScene() {
+      const key = document.getElementById('scene-key').value.trim();
+      const text = document.getElementById('scene-text').value.trim();
+      const choiceElems = document.querySelectorAll('.choice-group');
+
+      if (!key || !text) {
+        alert("Scene key and text are required.");
+        return;
+      }
+
+      const choices = [];
+      choiceElems.forEach(el => {
+        const choiceText = el.querySelector('.choice-text').value.trim();
+        const nextScene = el.querySelector('.next-scene').value.trim();
+        if (choiceText && nextScene) {
+          choices.push({ text: choiceText, next: nextScene });
+        }
+      });
+
+      const scene = { text, choices };
+
+      if (document.getElementById('add-meta').checked) {
+        scene.meta = { rewindable: document.getElementById('rewindable').checked };
+      }
+
+      story[key] = scene;
+      document.getElementById('status').textContent = `Scene '${key}' added.`;
+    }
+
+    function downloadStory() {
+      const blob = new Blob([JSON.stringify(story, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'story.json';
+      a.click();
+    }
+
+    function loadStory(input) {
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = function () {
+        story = JSON.parse(reader.result);
+        document.getElementById('status').textContent = 'Story loaded.';
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
+
