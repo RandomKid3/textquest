@@ -1,31 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TextQuest Story Builder</title>
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.5.10/css/pico.min.css">
   <style>
-    body { font-family: sans-serif; padding: 2em; max-width: 700px; margin: auto; }
-    label { display: block; margin-top: 1em; }
+    body { max-width: 800px; margin: auto; padding: 2rem; }
+    .choice-group { padding-left: 1rem; border-left: 2px solid var(--muted-border-color); margin-bottom: 1rem; }
     textarea, input[type="text"] { width: 100%; }
-    button { margin-top: 1em; padding: 0.5em 1em; }
-    .choice-group { margin-left: 1em; }
+    pre { white-space: pre-wrap; background: var(--pico-code-background-color); padding: 1rem; border-radius: 0.5rem; }
+    #unfinished { max-height: 200px; overflow-y: auto; border: 1px solid var(--muted-border-color); padding: 1em; margin-bottom: 2em; border-radius: 0.5rem; }
+    #dark-mode-toggle { float: right; }
   </style>
 </head>
 <body>
-  <h1>TextQuest Story Builder</h1>
+  <header>
+    <h1>TextQuest Story Builder</h1>
+    <label id="dark-mode-toggle">
+      <input type="checkbox" role="switch" onchange="toggleDarkMode()"> Dark Mode
+    </label>
+  </header>
+
   <label>Scene Key:
     <input type="text" id="scene-key">
   </label>
+
   <label>Scene Text:
     <textarea id="scene-text" rows="4"></textarea>
   </label>
+
   <div id="choices"></div>
   <button onclick="addChoice()">Add Choice</button>
 
   <label>
     <input type="checkbox" id="add-meta" onchange="toggleMeta()"> Add Metadata
   </label>
+
   <div id="meta-block" style="display: none;">
     <label>
       <input type="checkbox" id="rewindable" checked> Rewindable
@@ -40,12 +51,21 @@
   <pre id="status"></pre>
 
   <h2>Unfinished Scenes</h2>
-  <div id="unfinished" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 1em; margin-bottom: 2em;">
-    <i>No missing scenes yet.</i>
-  </div>
+  <div id="unfinished"><i>No missing scenes yet.</i></div>
 
   <script>
     let story = {};
+
+    // Load saved story from localStorage
+    if (localStorage.getItem("textquest-story")) {
+      story = JSON.parse(localStorage.getItem("textquest-story"));
+      document.getElementById('status').textContent = "Story loaded from autosave.";
+      updateUnfinishedScenes();
+    }
+
+    function saveStory() {
+      localStorage.setItem("textquest-story", JSON.stringify(story));
+    }
 
     function addChoice() {
       const div = document.createElement('div');
@@ -53,7 +73,6 @@
       div.innerHTML = `
         <label>Choice Text: <input type="text" class="choice-text"></label>
         <label>Next Scene Key: <input type="text" class="next-scene"></label>
-        <hr>
       `;
       document.getElementById('choices').appendChild(div);
     }
@@ -83,7 +102,6 @@
       });
 
       const scene = { text, choices };
-
       if (document.getElementById('add-meta').checked) {
         scene.meta = { rewindable: document.getElementById('rewindable').checked };
       }
@@ -91,6 +109,7 @@
       story[key] = scene;
       document.getElementById('status').textContent = `Scene '${key}' added.`;
       updateUnfinishedScenes();
+      saveStory();
     }
 
     function downloadStory() {
@@ -109,6 +128,7 @@
         story = JSON.parse(reader.result);
         document.getElementById('status').textContent = 'Story loaded.';
         updateUnfinishedScenes();
+        saveStory();
       };
       reader.readAsText(file);
     }
@@ -119,7 +139,6 @@
 
       for (const [key, scene] of Object.entries(story)) {
         if (!scene.choices) continue;
-
         scene.choices.forEach(choice => {
           if (!keys.includes(choice.next)) {
             errors.push(`Scene '${key}' has a choice pointing to missing scene '${choice.next}'`);
@@ -144,14 +163,28 @@
       }
 
       const unfinished = Array.from(referenced).filter(nextKey => !keys.includes(nextKey));
-
       const unfinishedBox = document.getElementById('unfinished');
+
       if (unfinished.length > 0) {
         unfinishedBox.innerHTML = `<ul>${unfinished.map(s => `<li>${s}</li>`).join("")}</ul>`;
       } else {
         unfinishedBox.innerHTML = `<i>No missing scenes. All good!</i>`;
       }
     }
+
+    function toggleDarkMode() {
+      const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+      const newTheme = isDark ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+    }
+
+    // Load theme on startup
+    (() => {
+      const saved = localStorage.getItem("theme");
+      if (saved) document.documentElement.setAttribute("data-theme", saved);
+      document.getElementById("dark-mode-toggle").querySelector("input").checked = saved === "dark";
+    })();
   </script>
 </body>
 </html>
