@@ -39,6 +39,11 @@
 
   <pre id="status"></pre>
 
+  <h2>Unfinished Scenes</h2>
+  <div id="unfinished" style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 1em; margin-bottom: 2em;">
+    <i>No missing scenes yet.</i>
+  </div>
+
   <script>
     let story = {};
 
@@ -85,6 +90,7 @@
 
       story[key] = scene;
       document.getElementById('status').textContent = `Scene '${key}' added.`;
+      updateUnfinishedScenes();
     }
 
     function downloadStory() {
@@ -102,6 +108,7 @@
       reader.onload = function () {
         story = JSON.parse(reader.result);
         document.getElementById('status').textContent = 'Story loaded.';
+        updateUnfinishedScenes();
       };
       reader.readAsText(file);
     }
@@ -124,6 +131,25 @@
         document.getElementById('status').textContent = "Validation Errors:\n" + errors.join("\n");
       } else {
         document.getElementById('status').textContent = "All scenes are valid!";
+      }
+    }
+
+    function updateUnfinishedScenes() {
+      const keys = Object.keys(story);
+      const referenced = new Set();
+
+      for (const scene of Object.values(story)) {
+        if (!scene.choices) continue;
+        scene.choices.forEach(choice => referenced.add(choice.next));
+      }
+
+      const unfinished = Array.from(referenced).filter(nextKey => !keys.includes(nextKey));
+
+      const unfinishedBox = document.getElementById('unfinished');
+      if (unfinished.length > 0) {
+        unfinishedBox.innerHTML = `<ul>${unfinished.map(s => `<li>${s}</li>`).join("")}</ul>`;
+      } else {
+        unfinishedBox.innerHTML = `<i>No missing scenes. All good!</i>`;
       }
     }
   </script>
