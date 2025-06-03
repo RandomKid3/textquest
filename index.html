@@ -5,6 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TextQuest Story Builder</title>
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.5.10/css/pico.min.css">
+
+  <!-- 🌈 Custom Theme Colors -->
+  <style>
+    :root {
+      /* 🌞 Light mode colors */
+      --primary: #ff6b6b;
+      --primary-hover: #ff4d4d;
+      --primary-focus: rgba(255, 107, 107, 0.25);
+      --primary-inverse: #fff;
+
+      --background-color: #fefefe;
+      --muted-border-color: #ddd;
+      --pico-code-background-color: #f4f4f4;
+    }
+
+    [data-theme="dark"] {
+      /* 🌙 Dark mode overrides */
+      --primary: #ff6b6b;
+      --primary-hover: #ff4d4d;
+      --primary-focus: rgba(255, 107, 107, 0.25);
+      --primary-inverse: #000;
+
+      --background-color: #121212;
+      --muted-border-color: #444;
+      --pico-code-background-color: #1e1e1e;
+    }
+  </style>
+
   <style>
     body { max-width: 800px; margin: auto; padding: 2rem; }
     .choice-group { padding-left: 1rem; border-left: 2px solid var(--muted-border-color); margin-bottom: 1rem; }
