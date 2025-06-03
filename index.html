@@ -213,6 +213,90 @@
       if (saved) document.documentElement.setAttribute("data-theme", saved);
       document.getElementById("dark-mode-toggle").querySelector("input").checked = saved === "dark";
     })();
+    function showGraph() {
+  const container = document.getElementById('graph');
+  container.style.display = 'block';
+
+  const nodes = new vis.DataSet(Object.keys(story).map(key => ({
+    id: key,
+    label: key
+  })));
+
+  const edges = [];
+
+  for (const [key, scene] of Object.entries(story)) {
+    if (!scene.choices) continue;
+    for (const choice of scene.choices) {
+      if (choice.next) {
+        edges.push({
+          from: key,
+          to: choice.next,
+          arrows: "to",
+          color: { color: "#ff6b6b", highlight: "#ff4d4d", inherit: false },
+          smooth: {
+            type: "dynamic",
+            roundness: 0.5
+          }
+        });
+      }
+    }
+  }
+
+  const data = { nodes, edges };
+  const options = {
+    layout: { hierarchical: false },
+    edges: {
+      smooth: {
+        type: "dynamic",
+        forceDirection: "horizontal",
+        roundness: 0.4
+      },
+      width: 2,
+      shadow: true
+    },
+    nodes: {
+      shape: "box",
+      borderWidth: 0,
+      borderWidthSelected: 0,
+      color: {
+        background: "var(--primary)",
+        highlight: { background: "var(--primary-hover)" },
+      },
+      font: {
+        color: "#fff",
+        face: "monospace",
+        size: 14,
+        strokeWidth: 0
+      },
+      shadow: {
+        enabled: true,
+        color: 'rgba(255, 107, 107, 0.4)',
+        size: 15,
+        x: 0,
+        y: 0
+      },
+      margin: 10,
+      borderRadius: 12
+    },
+    physics: {
+      enabled: true,
+      solver: "forceAtlas2Based",
+      forceAtlas2Based: {
+        gravitationalConstant: -50,
+        centralGravity: 0.005,
+        springLength: 100,
+        springConstant: 0.08
+      },
+      stabilization: {
+        enabled: true,
+        iterations: 1000,
+        updateInterval: 25
+      }
+    }
+  };
+
+  new vis.Network(container, data, options);
+}
   </script>
 </body>
 </html>
