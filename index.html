@@ -247,6 +247,7 @@
   }
 
   const data = { nodes, edges };
+
   const options = {
     layout: { hierarchical: false },
     edges: {
@@ -260,14 +261,22 @@
     },
     nodes: {
       shape: "box",
+      labelHighlightBold: false,
+      scaling: {
+        label: {
+          enabled: true,
+          min: 8,
+          max: 24
+        }
+      },
       borderWidth: 0,
       borderWidthSelected: 0,
       color: {
-        background: "var(--primary)",
-        highlight: { background: "var(--primary-hover)" },
+        background: "#1e1e2f",
+        highlight: { background: "#2e2e40" }
       },
       font: {
-        color: "#fff",
+        color: "#ffffff",
         face: "monospace",
         size: 14,
         strokeWidth: 0
