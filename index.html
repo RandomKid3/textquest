@@ -233,7 +233,7 @@
   }
 }
 
-    function loadAutosavedStory() {
+    function loadAutoSavedStory() {
   if (localStorage.getItem("textquest-story")) {
     story = JSON.parse(localStorage.getItem("textquest-story"));
     document.getElementById('status').textContent = "Autosaved story loaded.";
