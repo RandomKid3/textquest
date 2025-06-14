@@ -77,6 +77,8 @@
   <button onclick="downloadStory()">Download Story JSON</button>
   <input type="file" onchange="loadStory(this)">
   <button onclick="validateStory()">Validate Scene Links</button>
+  <button onclick="startNewStory()">New Story</button>
+  <button onclick="loadAutoSavedStory()">Load Autosaved Story</button>
 
   <pre id="status"></pre>
 
@@ -217,6 +219,29 @@
       if (saved) document.documentElement.setAttribute("data-theme", saved);
       document.getElementById("dark-mode-toggle").querySelector("input").checked = saved === "dark";
     })();
+
+
+    function startNewStory() {
+  if (confirm("Are you sure you want to start a new story? This will erase the current one.")) {
+    story = {};
+    document.getElementById('scene-key').value = "";
+    document.getElementById('scene-text').value = "";
+    document.getElementById('choices').innerHTML = "";
+    document.getElementById('status').textContent = "Started a new story.";
+    document.getElementById('unfinished').innerHTML = "<i>No missing scenes yet.</i>";
+    saveStory(); // Save the cleared story
+  }
+}
+
+    function loadAutosavedStory() {
+  if (localStorage.getItem("textquest-story")) {
+    story = JSON.parse(localStorage.getItem("textquest-story"));
+    document.getElementById('status').textContent = "Autosaved story loaded.";
+    updateUnfinishedScenes();
+  } else {
+    alert("No autosaved story found.");
+  }
+}
     function showGraph() {
   const container = document.getElementById('graph');
   container.style.display = 'block';
