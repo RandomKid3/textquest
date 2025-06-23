@@ -1,6 +1,8 @@
 <!DOCTYPE html><html lang="en" data-theme="light"><head>  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TextQuest Story Builder</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ff6b6b">
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.5.10/css/pico.min.css">
   <link href="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.css" rel="stylesheet" />
   <script src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
@@ -243,5 +245,14 @@
       };
     }
   </script>
+
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log("Service Worker registered", reg))
+      .catch(err => console.error("SW registration failed", err));
+  }
+  </script>
+
 </body>
 </html>
