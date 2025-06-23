@@ -1,96 +1,63 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="light">
+<!DOCTYPE html><html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TextQuest Story Builder</title>
   <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.5.10/css/pico.min.css">
   <link href="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.css" rel="stylesheet" />
-<script src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
-
-  <!-- 🌈 Custom Theme Colors -->
-  <style>
+  <script src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>  <style>
     :root {
-      /* 🌞 Light mode colors */
       --primary: #ff6b6b;
       --primary-hover: #ff4d4d;
       --primary-focus: rgba(255, 107, 107, 0.25);
       --primary-inverse: #fff;
-
       --background-color: #fefefe;
       --muted-border-color: #ddd;
       --pico-code-background-color: #f4f4f4;
     }
 
     [data-theme="dark"] {
-      /* 🌙 Dark mode overrides */
       --primary: #ff6b6b;
       --primary-hover: #ff4d4d;
       --primary-focus: rgba(255, 107, 107, 0.25);
       --primary-inverse: #000;
-
       --background-color: #121212;
       --muted-border-color: #444;
       --pico-code-background-color: #1e1e1e;
     }
-  </style>
 
-  <style>
     body { max-width: 800px; margin: auto; padding: 2rem; }
     .choice-group { padding-left: 1rem; border-left: 2px solid var(--muted-border-color); margin-bottom: 1rem; }
     textarea, input[type="text"] { width: 100%; }
     pre { white-space: pre-wrap; background: var(--pico-code-background-color); padding: 1rem; border-radius: 0.5rem; }
     #unfinished { max-height: 200px; overflow-y: auto; border: 1px solid var(--muted-border-color); padding: 1em; margin-bottom: 2em; border-radius: 0.5rem; }
     #dark-mode-toggle { float: right; }
-  </style>
-</head>
+  </style></head>
 <body>
   <header>
     <h1>TextQuest Story Builder</h1>
     <label id="dark-mode-toggle">
       <input type="checkbox" role="switch" onchange="toggleDarkMode()"> Dark Mode
     </label>
-  </header>
+  </header><label>Scene Key: <input type="text" id="scene-key"> </label>
 
-  <label>Scene Key:
-    <input type="text" id="scene-key">
-  </label>
-
-  <label>Scene Text:
-    <textarea id="scene-text" rows="4"></textarea>
-  </label>
+<label>Scene Text: <textarea id="scene-text" rows="4"></textarea> </label>
 
   <div id="choices"></div>
-  <button onclick="addChoice()">Add Choice</button>
-
-  <label>
+  <button onclick="addChoice()">Add Choice</button>  <label>
     <input type="checkbox" id="add-meta" onchange="toggleMeta()"> Add Metadata
-  </label>
-
-  <div id="meta-block" style="display: none;">
+  </label>  <div id="meta-block" style="display: none;">
     <label>
       <input type="checkbox" id="rewindable" checked> Rewindable
     </label>
-  </div>
+  </div><button onclick="addScene()">Add/Update Scene</button> <button onclick="downloadStory()">Download Story JSON</button> <input type="file" onchange="loadStory(this)"> <button onclick="validateStory()">Validate Scene Links</button> <button onclick="startNewStory()">New Story</button> <button onclick="loadAutoSavedStory()">Load Autosaved Story</button> <button onclick="saveToIndexedDB()">Save to IndexedDB</button> <button onclick="loadFromIndexedDB()">Load from IndexedDB</button> <button onclick="listStories()">📜 List Saved Stories</button>
 
-  <button onclick="addScene()">Add/Update Scene</button>
-  <button onclick="downloadStory()">Download Story JSON</button>
-  <input type="file" onchange="loadStory(this)">
-  <button onclick="validateStory()">Validate Scene Links</button>
-  <button onclick="startNewStory()">New Story</button>
-  <button onclick="loadAutoSavedStory()">Load Autosaved Story</button>
-
-  <pre id="status"></pre>
-
-  <h2>Unfinished Scenes</h2>
+  <pre id="status"></pre>  <h2>Unfinished Scenes</h2>
   <div id="unfinished"><i>No missing scenes yet.</i></div>
   <div id="graph" style="height: 600px; display: none; margin-top: 2rem;"></div>
-<button onclick="showGraph()">Show Graph</button>
-
-  <script>
+  <button onclick="showGraph()">Show Graph</button>  <ul id="story-list"></ul>  <script>
     let story = {};
 
-    // Load saved story from localStorage
     if (localStorage.getItem("textquest-story")) {
       story = JSON.parse(localStorage.getItem("textquest-story"));
       document.getElementById('status').textContent = "Story loaded from autosave.";
@@ -112,33 +79,24 @@
     }
 
     function toggleMeta() {
-      document.getElementById('meta-block').style.display =
-        document.getElementById('add-meta').checked ? 'block' : 'none';
+      document.getElementById('meta-block').style.display = document.getElementById('add-meta').checked ? 'block' : 'none';
     }
 
     function addScene() {
       const key = document.getElementById('scene-key').value.trim();
       const text = document.getElementById('scene-text').value.trim();
       const choiceElems = document.querySelectorAll('.choice-group');
-
-      if (!key || !text) {
-        alert("Scene key and text are required.");
-        return;
-      }
+      if (!key || !text) return alert("Scene key and text are required.");
 
       const choices = [];
       choiceElems.forEach(el => {
         const choiceText = el.querySelector('.choice-text').value.trim();
         const nextScene = el.querySelector('.next-scene').value.trim();
-        if (choiceText && nextScene) {
-          choices.push({ text: choiceText, next: nextScene });
-        }
+        if (choiceText && nextScene) choices.push({ text: choiceText, next: nextScene });
       });
 
       const scene = { text, choices };
-      if (document.getElementById('add-meta').checked) {
-        scene.meta = { rewindable: document.getElementById('rewindable').checked };
-      }
+      if (document.getElementById('add-meta').checked) scene.meta = { rewindable: document.getElementById('rewindable').checked };
 
       story[key] = scene;
       document.getElementById('status').textContent = `Scene '${key}' added.`;
@@ -180,30 +138,19 @@
         });
       }
 
-      if (errors.length > 0) {
-        document.getElementById('status').textContent = "Validation Errors:\n" + errors.join("\n");
-      } else {
-        document.getElementById('status').textContent = "All scenes are valid!";
-      }
+      document.getElementById('status').textContent = errors.length ? "Validation Errors:\n" + errors.join("\n") : "All scenes are valid!";
     }
 
     function updateUnfinishedScenes() {
       const keys = Object.keys(story);
       const referenced = new Set();
-
       for (const scene of Object.values(story)) {
         if (!scene.choices) continue;
         scene.choices.forEach(choice => referenced.add(choice.next));
       }
-
       const unfinished = Array.from(referenced).filter(nextKey => !keys.includes(nextKey));
       const unfinishedBox = document.getElementById('unfinished');
-
-      if (unfinished.length > 0) {
-        unfinishedBox.innerHTML = `<ul>${unfinished.map(s => `<li>${s}</li>`).join("")}</ul>`;
-      } else {
-        unfinishedBox.innerHTML = `<i>No missing scenes. All good!</i>`;
-      }
+      unfinishedBox.innerHTML = unfinished.length ? `<ul>${unfinished.map(s => `<li>${s}</li>`).join("")}</ul>` : `<i>No missing scenes. All good!</i>`;
     }
 
     function toggleDarkMode() {
@@ -213,128 +160,101 @@
       localStorage.setItem("theme", newTheme);
     }
 
-    // Load theme on startup
     (() => {
       const saved = localStorage.getItem("theme");
       if (saved) document.documentElement.setAttribute("data-theme", saved);
       document.getElementById("dark-mode-toggle").querySelector("input").checked = saved === "dark";
     })();
 
-
     function startNewStory() {
-  if (confirm("Are you sure you want to start a new story? This will erase the current one.")) {
-    story = {};
-    document.getElementById('scene-key').value = "";
-    document.getElementById('scene-text').value = "";
-    document.getElementById('choices').innerHTML = "";
-    document.getElementById('status').textContent = "Started a new story.";
-    document.getElementById('unfinished').innerHTML = "<i>No missing scenes yet.</i>";
-    saveStory(); // Save the cleared story
-  }
-}
+      if (confirm("Start a new story? This will erase the current one.")) {
+        story = {};
+        document.getElementById('scene-key').value = "";
+        document.getElementById('scene-text').value = "";
+        document.getElementById('choices').innerHTML = "";
+        document.getElementById('status').textContent = "Started a new story.";
+        document.getElementById('unfinished').innerHTML = "<i>No missing scenes yet.</i>";
+        saveStory();
+      }
+    }
 
     function loadAutoSavedStory() {
-  if (localStorage.getItem("textquest-story")) {
-    story = JSON.parse(localStorage.getItem("textquest-story"));
-    document.getElementById('status').textContent = "Autosaved story loaded.";
-    updateUnfinishedScenes();
-  } else {
-    alert("No autosaved story found.");
-  }
-}
+      if (localStorage.getItem("textquest-story")) {
+        story = JSON.parse(localStorage.getItem("textquest-story"));
+        document.getElementById('status').textContent = "Autosaved story loaded.";
+        updateUnfinishedScenes();
+      } else {
+        alert("No autosaved story found.");
+      }
+    }
+
     function showGraph() {
-  const container = document.getElementById('graph');
-  container.style.display = 'block';
-
-  const nodes = new vis.DataSet(Object.keys(story).map(key => ({
-    id: key,
-    label: key
-  })));
-
-  const edges = [];
-
-  for (const [key, scene] of Object.entries(story)) {
-    if (!scene.choices) continue;
-    for (const choice of scene.choices) {
-      if (choice.next) {
-        edges.push({
-          from: key,
-          to: choice.next,
-          arrows: "to",
-          color: { color: "#00c3ff", highlight: "#ffdd00", inherit: false },
-          smooth: {
-            type: "dynamic",
-            roundness: 0.5
+      const container = document.getElementById('graph');
+      container.style.display = 'block';
+      const nodes = new vis.DataSet(Object.keys(story).map(key => ({ id: key, label: key })));
+      const edges = [];
+      for (const [key, scene] of Object.entries(story)) {
+        if (!scene.choices) continue;
+        for (const choice of scene.choices) {
+          if (choice.next) {
+            edges.push({ from: key, to: choice.next, arrows: "to", color: { color: "#00c3ff", highlight: "#ffdd00", inherit: false }, smooth: { type: "dynamic", roundness: 0.5 } });
           }
-        });
-      }
-    }
-  }
-
-  const data = { nodes, edges };
-
-  const options = {
-    layout: { hierarchical: false },
-    edges: {
-      smooth: {
-        type: "dynamic",
-        forceDirection: "horizontal",
-        roundness: 0.4
-      },
-      width: 2,
-      shadow: true
-    },
-    nodes: {
-      shape: "box",
-      labelHighlightBold: false,
-      scaling: {
-        label: {
-          enabled: true,
-          min: 8,
-          max: 24
         }
-      },
-      borderWidth: 0,
-      borderWidthSelected: 0,
-      color: {
-        background: "#1e1e2f",
-        highlight: { background: "#2e2e40" }
-      },
-      font: {
-        color: "#ffffff",
-        face: "monospace",
-        size: 14,
-        strokeWidth: 0
-      },
-      shadow: {
-        enabled: true,
-        color: 'rgba(255, 107, 107, 0.4)',
-        size: 25,
-        x: 0,
-        y: 0
-      },
-      margin: 10,
-      borderRadius: 12
-    },
-    physics: {
-      enabled: true,
-      solver: "forceAtlas2Based",
-      forceAtlas2Based: {
-        gravitationalConstant: -50,
-        centralGravity: 0.005,
-        springLength: 100,
-        springConstant: 0.08
-      },
-      stabilization: {
-        enabled: true,
-        iterations: 1000,
-        updateInterval: 25
       }
+      const data = { nodes, edges };
+      const options = { layout: { hierarchical: false }, edges: { smooth: { type: "dynamic", forceDirection: "horizontal", roundness: 0.4 }, width: 2, shadow: true }, nodes: { shape: "box", labelHighlightBold: false, scaling: { label: { enabled: true, min: 8, max: 24 } }, borderWidth: 0, borderWidthSelected: 0, color: { background: "#1e1e2f", highlight: { background: "#2e2e40" } }, font: { color: "#ffffff", face: "monospace", size: 14, strokeWidth: 0 }, shadow: { enabled: true, color: 'rgba(255, 107, 107, 0.4)', size: 25, x: 0, y: 0 }, margin: 10, borderRadius: 12 }, physics: { enabled: true, solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -50, centralGravity: 0.005, springLength: 100, springConstant: 0.08 }, stabilization: { enabled: true, iterations: 1000, updateInterval: 25 } } };
+      new vis.Network(container, data, options);
     }
-  };
 
-  new vis.Network(container, data, options);
-}
-  </script>
-</body>
+    // IndexedDB Integration
+    let db;
+    const request = indexedDB.open("TextQuestDB", 1);
+
+    request.onupgradeneeded = (e) => {
+      db = e.target.result;
+      db.createObjectStore("stories", { keyPath: "name" });
+    };
+
+    request.onsuccess = (e) => { db = e.target.result; };
+    request.onerror = (e) => console.error("IndexedDB error:", e);
+
+    function saveToIndexedDB() {
+      const name = prompt("Enter a name for this story:");
+      if (!name) return;
+      const tx = db.transaction("stories", "readwrite");
+      const store = tx.objectStore("stories");
+      store.put({ name, data: story });
+      tx.oncomplete = () => document.getElementById('status').textContent = `Story '${name}' saved to IndexedDB.`;
+    }
+
+    function loadFromIndexedDB() {
+      const name = prompt("Enter story name to load:");
+      if (!name) return;
+      const tx = db.transaction("stories", "readonly");
+      const store = tx.objectStore("stories");
+      const req = store.get(name);
+      req.onsuccess = () => {
+        if (req.result) {
+          story = req.result.data;
+          updateUnfinishedScenes();
+          saveStory();
+          document.getElementById('status').textContent = `Story '${name}' loaded from IndexedDB.`;
+        } else {
+          alert("No story found with that name.");
+        }
+      };
+    }
+
+    function listStories() {
+      const tx = db.transaction("stories", "readonly");
+      const store = tx.objectStore("stories");
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const stories = request.result;
+        const list = document.getElementById("story-list");
+        list.innerHTML = stories.map(s => `<li>${s.name}</li>`).join("");
+        if (!stories.length) list.innerHTML = "<li>No stories saved.</li>";
+      };
+    }
+  </script></body>
 </html>
